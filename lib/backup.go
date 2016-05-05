@@ -85,7 +85,78 @@ func backupGitHub(target map[string]string, backupDirectory string) error {
 }
 
 func backupBitBucket(target map[string]string, backupDirectory string) error {
-	// TODO: implement.
+	// Create URL to request list of repos.
+	// TODO: support pagination.
+	var requestURL string = fmt.Sprintf(
+		"https://%s:%s@bitbucket.org/api/2.0/repositories/%s?page=1&pagelen=100",
+		target["entity"],
+		target["password"],
+		target["entity"],
+	)
+	fmt.Println(requestURL)
+
+	// Retrieve list of repositories.
+	response, err := http.Get(requestURL)
+	if err != nil {
+		return fmt.Errorf("Failed to connect with the source to retrieve the list of repositories: %s", err)
+	}
+	defer response.Body.Close()
+	contents, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return fmt.Errorf("Failed to retrieve the list of repositories: %s", err)
+	}
+
+	// Parse JSON response.
+	var metadata map[string]json.RawMessage
+	if err := json.Unmarshal(contents, &metadata); err != nil {
+		return fmt.Errorf("Failed to parse JSON: %s", err)
+	}
+	var data []map[string]json.RawMessage
+	if err := json.Unmarshal(metadata["values"], &data); err != nil {
+		return fmt.Errorf("Failed to parse JSON: %s", err)
+	}
+
+	// Back up each repository.
+	for _, repo := range data {
+		// Parse the remaining JSON message that pertains to this repository.
+		var repoName string
+		if err := json.Unmarshal(repo["name"], &repoName); err != nil {
+			return fmt.Errorf("Failed to parse JSON: %s", err)
+		}
+		var links map[string]json.RawMessage
+		if err := json.Unmarshal(repo["links"], &links); err != nil {
+			return fmt.Errorf("Failed to parse JSON: %s", err)
+		}
+		var cloneLinks []map[string]string
+		if err := json.Unmarshal(links["clone"], &cloneLinks); err != nil {
+			return fmt.Errorf("Failed to parse JSON: %s", err)
+		}
+
+		// Find the https URL to use for cloning.
+		var cloneURL string
+		for _, link := range cloneLinks {
+			if link["name"] == "https" {
+				cloneURL = link["href"]
+			}
+		}
+		if cloneURL == "" {
+			return fmt.Errorf("Could not determine HTTPS cloning URL: %s", cloneLinks)
+		}
+
+		// Back up the repository.
+		cloneURL = strings.Replace(
+			cloneURL,
+			fmt.Sprintf("https://%s@", target["entity"]),
+			fmt.Sprintf("https://%s:%s@", target["entity"], target["password"]),
+			1,
+		)
+		backupRepository(
+			target["name"],
+			repoName,
+			cloneURL,
+			backupDirectory,
+		)
+	}
 
 	// No errors.
 	return nil
