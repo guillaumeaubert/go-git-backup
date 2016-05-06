@@ -1,6 +1,6 @@
 package gitbackup
 
-import(
+import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -14,7 +14,7 @@ import(
 )
 
 type repository struct {
-	name string
+	name     string
 	cloneURL string
 }
 
@@ -38,7 +38,7 @@ func BackupTarget(target map[string]string, backupDirectory string) error {
 	default:
 		err = fmt.Errorf(`"%s" is not a recognized source type`, target["source"])
 	}
-	if (err != nil) {
+	if err != nil {
 		return err
 	}
 
@@ -223,14 +223,14 @@ func backupRepository(targetName string, repoName string, cloneURL string, backu
 }
 
 func includeRepository(repoName string, target map[string]string) bool {
-	if (target["skip"] != "") {
+	if target["skip"] != "" {
 		r, err := regexp.Compile(target["skip"])
 		if err != nil {
 			log.Fatalf(`"skip" does not specify a valid regular expression: %s`, err)
 		}
 		return r.MatchString(repoName) == false
 	}
-	if (target["only"] != "") {
+	if target["only"] != "" {
 		r, err := regexp.Compile(target["only"])
 		if err != nil {
 			log.Fatalf(`"only" does not specify a valid regular expression: %s`, err)

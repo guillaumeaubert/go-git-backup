@@ -1,6 +1,6 @@
 package gitbackup
 
-import(
+import (
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"log"
@@ -10,8 +10,8 @@ import(
 // Config represents the configuration file that will be used to find backup
 // targets and where to back up the repositories
 type Config struct {
-	BackupDirectory string `yaml:"backup_directory"`
-	Targets []map[string]string `yaml:"targets"`
+	BackupDirectory string              `yaml:"backup_directory"`
+	Targets         []map[string]string `yaml:"targets"`
 }
 
 // GetConfig retrieves the configuration file specified by the user and parses
@@ -37,4 +37,3 @@ func GetConfig(configPath string) Config {
 
 	return config
 }
-

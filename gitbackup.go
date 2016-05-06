@@ -37,7 +37,7 @@
 //
 package main
 
-import(
+import (
 	"flag"
 	"fmt"
 	"log"
