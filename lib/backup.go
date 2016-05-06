@@ -27,7 +27,7 @@ type repository struct {
 //   - A BitBucket user.
 //   - A GitHub organization.
 func BackupTarget(target map[string]string, backupDirectory string) error {
-	log.Printf(`Backing up target "%s"`, target["name"])
+	fmt.Printf("########## Backing up target %s ##########\n\n", target["name"])
 
 	// Retrieve a list of all the git repositories available from the target.
 	var repoList []repository
@@ -194,27 +194,21 @@ func getBitBucketRepoList(target map[string]string, backupDirectory string) ([]r
 // doing a normal git clone of the backup itself.
 func backupRepository(targetName string, repoName string, cloneURL string, backupDirectory string) {
 	var cloneDirectory string = filepath.Join(backupDirectory, targetName, repoName)
-	fmt.Println(fmt.Sprintf("#> %s", repoName))
-	log.Printf(`Backing up repo "%s"`, repoName)
 
 	if _, err := os.Stat(cloneDirectory); os.IsNotExist(err) {
 		// The repo doesn't exist locally, clone it.
-		log.Printf("Cloning %s to %s", cloneURL, cloneDirectory)
-
 		cmd := exec.Command("git", "clone", "--mirror", cloneURL, cloneDirectory)
 		cmdOut, err := cmd.CombinedOutput()
 		if err != nil {
 			fmt.Println("Error cloning the repository:", err)
 		} else {
-			fmt.Println("Cloned repository.")
 			if len(cmdOut) > 0 {
 				fmt.Printf(string(cmdOut))
 			}
+			fmt.Println("Cloned repository.")
 		}
 	} else {
 		// The repo already exists, pull updates.
-		log.Printf("Pulling git repo in %s", cloneDirectory)
-
 		cmd := exec.Command("git", "fetch", "-p", cloneURL)
 		cmd.Dir = cloneDirectory
 		cmdOut, err := cmd.CombinedOutput()
