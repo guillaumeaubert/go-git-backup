@@ -14,6 +14,11 @@ import(
 	"strings"
 )
 
+type repository struct {
+	name string
+	cloneURL string
+}
+
 // BackupTarget backs up an entity that holds one or more git repositories and
 // has an interface to retrieve that list of repositories.
 // Examples of entities include:
@@ -23,20 +28,37 @@ import(
 func BackupTarget(target map[string]string, backupDirectory string) error {
 	log.Printf(`Backing up target "%s"`, target["name"])
 
-	// TODO: replace with a factory pattern?
+	// Retrieve a list of all the git repositories available from the target.
+	var repoList []repository
+	var err error
 	switch target["source"] {
 	case "github":
-		return backupGitHub(target, backupDirectory)
+		repoList, err = getGitHubRepoList(target, backupDirectory)
 	case "bitbucket":
-		return backupBitBucket(target, backupDirectory)
+		repoList, err = getBitBucketRepoList(target, backupDirectory)
 	default:
-		return fmt.Errorf(`"%s" is not a recognized source type`, target["source"])
+		err = fmt.Errorf(`"%s" is not a recognized source type`, target["source"])
 	}
+	if (err != nil) {
+		return err
+	}
+
+	// Back up each repository found.
+	for _, repo := range repoList {
+		backupRepository(
+			target["name"],
+			repo.name,
+			repo.cloneURL,
+			backupDirectory,
+		)
+	}
+
+	return nil
 }
 
-// backupGitHub finds all the repositories under a given user or organization
-// before backing up each one.
-func backupGitHub(target map[string]string, backupDirectory string) error {
+// getGitHubRepoList finds all the repositories belonging to a given user or
+// organization on GitHub.
+func getGitHubRepoList(target map[string]string, backupDirectory string) ([]repository, error) {
 	// Create URL to request list of repos.
 	var requestURL string = fmt.Sprintf(
 		"https://api.github.com/%s/%s/repos?access_token=%s&per_page=200",
@@ -48,22 +70,23 @@ func backupGitHub(target map[string]string, backupDirectory string) error {
 	// Retrieve list of repositories.
 	response, err := http.Get(requestURL)
 	if err != nil {
-		return fmt.Errorf("Failed to connect with the source to retrieve the list of repositories: %s", err)
+		return nil, fmt.Errorf("Failed to connect with the source to retrieve the list of repositories: %s", err)
 	}
 	defer response.Body.Close()
 	contents, err := ioutil.ReadAll(response.Body)
 	if err != nil {
-		return fmt.Errorf("Failed to retrieve the list of repositories: %s", err)
+		return nil, fmt.Errorf("Failed to retrieve the list of repositories: %s", err)
 	}
 
 	// Parse JSON response.
 	var dat []map[string]interface{}
 	if err := json.Unmarshal(contents, &dat); err != nil {
-		return fmt.Errorf("Failed to parse JSON: %s", err)
+		return nil, fmt.Errorf("Failed to parse JSON: %s", err)
 	}
 
-	// Back up each repository.
-	for _, repo := range dat {
+	// Make a list of repositories.
+	repoList := make([]repository, len(dat))
+	for i, repo := range dat {
 		repoName, _ := repo["name"].(string)
 		cloneURL, _ := repo["clone_url"].(string)
 		cloneURL = strings.Replace(
@@ -72,19 +95,16 @@ func backupGitHub(target map[string]string, backupDirectory string) error {
 			fmt.Sprintf("https://%s:%s@", target["entity"], target["token"]),
 			1,
 		)
-		backupRepository(
-			target["name"],
-			repoName,
-			cloneURL,
-			backupDirectory,
-		)
+		repoList[i] = repository{name: repoName, cloneURL: cloneURL}
 	}
 
 	// No errors.
-	return nil
+	return repoList, nil
 }
 
-func backupBitBucket(target map[string]string, backupDirectory string) error {
+// getBitBucketRepoList finds all the repositories belonging to a given user on
+// BitBucket.
+func getBitBucketRepoList(target map[string]string, backupDirectory string) ([]repository, error) {
 	// Create URL to request list of repos.
 	// TODO: support pagination.
 	var requestURL string = fmt.Sprintf(
@@ -93,43 +113,43 @@ func backupBitBucket(target map[string]string, backupDirectory string) error {
 		target["password"],
 		target["entity"],
 	)
-	fmt.Println(requestURL)
 
 	// Retrieve list of repositories.
 	response, err := http.Get(requestURL)
 	if err != nil {
-		return fmt.Errorf("Failed to connect with the source to retrieve the list of repositories: %s", err)
+		return nil, fmt.Errorf("Failed to connect with the source to retrieve the list of repositories: %s", err)
 	}
 	defer response.Body.Close()
 	contents, err := ioutil.ReadAll(response.Body)
 	if err != nil {
-		return fmt.Errorf("Failed to retrieve the list of repositories: %s", err)
+		return nil, fmt.Errorf("Failed to retrieve the list of repositories: %s", err)
 	}
 
 	// Parse JSON response.
 	var metadata map[string]json.RawMessage
 	if err := json.Unmarshal(contents, &metadata); err != nil {
-		return fmt.Errorf("Failed to parse JSON: %s", err)
+		return nil, fmt.Errorf("Failed to parse JSON: %s", err)
 	}
 	var data []map[string]json.RawMessage
 	if err := json.Unmarshal(metadata["values"], &data); err != nil {
-		return fmt.Errorf("Failed to parse JSON: %s", err)
+		return nil, fmt.Errorf("Failed to parse JSON: %s", err)
 	}
 
-	// Back up each repository.
-	for _, repo := range data {
+	// Make a list of repositories.
+	repoList := make([]repository, len(data))
+	for i, repo := range data {
 		// Parse the remaining JSON message that pertains to this repository.
 		var repoName string
 		if err := json.Unmarshal(repo["name"], &repoName); err != nil {
-			return fmt.Errorf("Failed to parse JSON: %s", err)
+			return nil, fmt.Errorf("Failed to parse JSON: %s", err)
 		}
 		var links map[string]json.RawMessage
 		if err := json.Unmarshal(repo["links"], &links); err != nil {
-			return fmt.Errorf("Failed to parse JSON: %s", err)
+			return nil, fmt.Errorf("Failed to parse JSON: %s", err)
 		}
 		var cloneLinks []map[string]string
 		if err := json.Unmarshal(links["clone"], &cloneLinks); err != nil {
-			return fmt.Errorf("Failed to parse JSON: %s", err)
+			return nil, fmt.Errorf("Failed to parse JSON: %s", err)
 		}
 
 		// Find the https URL to use for cloning.
@@ -140,26 +160,22 @@ func backupBitBucket(target map[string]string, backupDirectory string) error {
 			}
 		}
 		if cloneURL == "" {
-			return fmt.Errorf("Could not determine HTTPS cloning URL: %s", cloneLinks)
+			return nil, fmt.Errorf("Could not determine HTTPS cloning URL: %s", cloneLinks)
 		}
 
-		// Back up the repository.
+		// Determine URL for cloning.
 		cloneURL = strings.Replace(
 			cloneURL,
 			fmt.Sprintf("https://%s@", target["entity"]),
 			fmt.Sprintf("https://%s:%s@", target["entity"], target["password"]),
 			1,
 		)
-		backupRepository(
-			target["name"],
-			repoName,
-			cloneURL,
-			backupDirectory,
-		)
+
+		repoList[i] = repository{name: repoName, cloneURL: cloneURL}
 	}
 
 	// No errors.
-	return nil
+	return repoList, nil
 }
 
 // backupRepository takes a remote git repository and backs it up locally.
