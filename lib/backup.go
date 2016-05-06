@@ -11,6 +11,7 @@ import(
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"strings"
 )
 
@@ -45,13 +46,21 @@ func BackupTarget(target map[string]string, backupDirectory string) error {
 
 	// Back up each repository found.
 	for _, repo := range repoList {
-		backupRepository(
-			target["name"],
-			repo.name,
-			repo.cloneURL,
-			backupDirectory,
-		)
+		fmt.Println(fmt.Sprintf("#> %s", repo.name))
+		if includeRepository(repo.name, target) {
+			backupRepository(
+				target["name"],
+				repo.name,
+				repo.cloneURL,
+				backupDirectory,
+			)
+			fmt.Println("")
+		} else {
+			fmt.Print("Skipped.\n\n")
+		}
 	}
+
+	fmt.Println("")
 
 	return nil
 }
@@ -213,10 +222,29 @@ func backupRepository(targetName string, repoName string, cloneURL string, backu
 			fmt.Println("Error pulling in the repository:", err)
 		} else {
 			// Display pulled information.
-			fmt.Println("Pulled latest updates in the repository.")
 			if len(cmdOut) > 0 {
 				fmt.Printf(string(cmdOut))
 			}
+			fmt.Println("Pulled latest updates in the repository.")
 		}
 	}
+}
+
+func includeRepository(repoName string, target map[string]string) bool {
+	if (target["skip"] != "") {
+		r, err := regexp.Compile(target["skip"])
+		if err != nil {
+			log.Fatalf(`"skip" does not specify a valid regular expression: %s`, err)
+		}
+		return r.MatchString(repoName) == false
+	}
+	if (target["only"] != "") {
+		r, err := regexp.Compile(target["only"])
+		if err != nil {
+			log.Fatalf(`"only" does not specify a valid regular expression: %s`, err)
+		}
+		return r.MatchString(repoName) == true
+	}
+
+	return true
 }
