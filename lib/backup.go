@@ -88,14 +88,14 @@ func getGitHubRepoList(target map[string]string, backupDirectory string) ([]repo
 	}
 
 	// Parse JSON response.
-	var dat []map[string]interface{}
-	if err := json.Unmarshal(contents, &dat); err != nil {
+	var data []map[string]interface{}
+	if err := json.Unmarshal(contents, &data); err != nil {
 		return nil, fmt.Errorf("Failed to parse JSON: %s", err)
 	}
 
 	// Make a list of repositories.
-	repoList := make([]repository, len(dat))
-	for i, repo := range dat {
+	repoList := make([]repository, len(data))
+	for i, repo := range data {
 		repoName, _ := repo["name"].(string)
 		cloneURL, _ := repo["clone_url"].(string)
 		cloneURL = strings.Replace(
