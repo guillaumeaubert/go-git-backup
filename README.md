@@ -4,6 +4,9 @@ Git backup package in Go
 go-git-backup offers a convenient way to back up remote GitHub/BitBucket
 users/organizations with a collection of repositories for each.
 
+Setup
+-----
+
 You first need to define a configuration file, for example ~/gitbackup.yml,
 with the following content:
 
@@ -22,6 +25,9 @@ with the following content:
       password: mysecretpassword
 ```
 
+Configuration options
+---------------------
+
 You can define as many targets as your config file as you would like. Each
 target should have the following information:
 
@@ -37,7 +43,8 @@ target should have the following information:
 * `password`: BitBucket doesn't support tokens yet, so you will need to use
   your normal password.
 
-Usage:
+Usage
+-----
 
 ```
 go run gitbackup.go -config ~/gitbackup.yml
