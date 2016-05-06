@@ -8,6 +8,7 @@ users/organizations with a collection of repositories for each.
 Code status
 -----------
 
+[![Build Status](https://travis-ci.org/guillaumeaubert/go-git-backup.svg?branch=master)](https://travis-ci.org/guillaumeaubert/go-git-backup)
 [![Go Report Card](https://goreportcard.com/badge/github.com/guillaumeaubert/go-git-backup)](https://goreportcard.com/report/github.com/guillaumeaubert/go-git-backup)
 [![GoDoc](https://godoc.org/github.com/guillaumeaubert/go-git-backup?status.svg)](https://godoc.org/github.com/guillaumeaubert/go-git-backup)
 
