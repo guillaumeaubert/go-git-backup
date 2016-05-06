@@ -25,6 +25,7 @@ with the following content:
       password: mysecretpassword
 ```
 
+
 Configuration options
 ---------------------
 
@@ -43,6 +44,7 @@ target should have the following information:
 * `password`: BitBucket doesn't support tokens yet, so you will need to use
   your normal password.
 
+
 Usage
 -----
 
@@ -51,3 +53,16 @@ go run gitbackup.go -config ~/gitbackup.yml
 
 gitbackup -config ~/gitbackup.yml
 ```
+
+
+Copyright
+---------
+
+Copyright (C) 2016 Guillaume Aubert
+
+
+License
+-------
+
+This software is released under the MIT license. See the LICENSE file for
+details.
