@@ -1,5 +1,3 @@
-// "gitbackup" holds the functions that do the actual backing up of git
-// repositories.
 package gitbackup
 
 import(
@@ -69,7 +67,7 @@ func BackupTarget(target map[string]string, backupDirectory string) error {
 // organization on GitHub.
 func getGitHubRepoList(target map[string]string, backupDirectory string) ([]repository, error) {
 	// Create URL to request list of repos.
-	var requestURL string = fmt.Sprintf(
+	requestURL := fmt.Sprintf(
 		"https://api.github.com/%s/%s/repos?access_token=%s&per_page=200",
 		target["type"],
 		target["entity"],
@@ -116,7 +114,7 @@ func getGitHubRepoList(target map[string]string, backupDirectory string) ([]repo
 func getBitBucketRepoList(target map[string]string, backupDirectory string) ([]repository, error) {
 	// Create URL to request list of repos.
 	// TODO: support pagination.
-	var requestURL string = fmt.Sprintf(
+	requestURL := fmt.Sprintf(
 		"https://%s:%s@bitbucket.org/api/2.0/repositories/%s?page=1&pagelen=100",
 		target["entity"],
 		target["password"],
@@ -193,7 +191,7 @@ func getBitBucketRepoList(target map[string]string, backupDirectory string) ([]r
 // which saves space. You can always get a normal repository from the backup by
 // doing a normal git clone of the backup itself.
 func backupRepository(targetName string, repoName string, cloneURL string, backupDirectory string) {
-	var cloneDirectory string = filepath.Join(backupDirectory, targetName, repoName)
+	cloneDirectory := filepath.Join(backupDirectory, targetName, repoName)
 
 	if _, err := os.Stat(cloneDirectory); os.IsNotExist(err) {
 		// The repo doesn't exist locally, clone it.
