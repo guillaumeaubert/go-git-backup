@@ -4,6 +4,13 @@ Git backup package in Go
 go-git-backup offers a convenient way to back up remote GitHub/BitBucket
 users/organizations with a collection of repositories for each.
 
+
+Code status
+-----------
+
+[![Go Report Card](https://goreportcard.com/badge/github.com/guillaumeaubert/go-git-backup)](https://goreportcard.com/report/github.com/guillaumeaubert/go-git-backup)
+
+
 Setup
 -----
 
