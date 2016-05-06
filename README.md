@@ -9,6 +9,7 @@ Code status
 -----------
 
 [![Go Report Card](https://goreportcard.com/badge/github.com/guillaumeaubert/go-git-backup)](https://goreportcard.com/report/github.com/guillaumeaubert/go-git-backup)
+[![GoDoc](https://godoc.org/github.com/guillaumeaubert/go-git-backup?status.svg)](https://godoc.org/github.com/guillaumeaubert/go-git-backup)
 
 
 Setup
