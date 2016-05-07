@@ -222,6 +222,9 @@ func backupRepository(targetName string, repoName string, cloneURL string, backu
 	}
 }
 
+// includeRepository takes a repository name and the information about the
+// target it is part of, and determines whether the repository should be backed
+// up or not.
 func includeRepository(repoName string, target Target) bool {
 	if target.Skip != "" {
 		r, err := regexp.Compile(target.Skip)
