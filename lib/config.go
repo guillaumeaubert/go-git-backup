@@ -10,7 +10,7 @@ import (
 // Config represents the configuration file that will be used to find backup
 // targets and where to back up the repositories
 type Config struct {
-	BackupDirectory string    `yaml:"backup_directory"`
+	BackupDirectory string   `yaml:"backup_directory"`
 	Targets         []Target `yaml:"targets"`
 }
 
