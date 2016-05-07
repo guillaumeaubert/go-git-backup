@@ -10,8 +10,22 @@ import (
 // Config represents the configuration file that will be used to find backup
 // targets and where to back up the repositories
 type Config struct {
-	BackupDirectory string              `yaml:"backup_directory"`
-	Targets         []map[string]string `yaml:"targets"`
+	BackupDirectory string    `yaml:"backup_directory"`
+	Targets         []Target `yaml:"targets"`
+}
+
+// Target holds configuration information about a given target to back up,
+// including the type of target, credentials, and what repositories to
+// include/skip.
+type Target struct {
+	Name     string
+	Source   string
+	Type     string
+	Entity   string
+	Password string
+	Token    string
+	Skip     string
+	Only     string
 }
 
 // GetConfig retrieves the configuration file specified by the user and parses

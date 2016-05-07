@@ -24,19 +24,19 @@ type repository struct {
 //   - A GitHub user.
 //   - A BitBucket user.
 //   - A GitHub organization.
-func BackupTarget(target map[string]string, backupDirectory string) error {
-	fmt.Printf("########## Backing up target %s ##########\n\n", target["name"])
+func BackupTarget(target Target, backupDirectory string) error {
+	fmt.Printf("########## Backing up target %s ##########\n\n", target.Name)
 
 	// Retrieve a list of all the git repositories available from the target.
 	var repoList []repository
 	var err error
-	switch target["source"] {
+	switch target.Source {
 	case "github":
 		repoList, err = getGitHubRepoList(target, backupDirectory)
 	case "bitbucket":
 		repoList, err = getBitBucketRepoList(target, backupDirectory)
 	default:
-		err = fmt.Errorf(`"%s" is not a recognized source type`, target["source"])
+		err = fmt.Errorf(`"%s" is not a recognized source type`, target.Source)
 	}
 	if err != nil {
 		return err
@@ -47,7 +47,7 @@ func BackupTarget(target map[string]string, backupDirectory string) error {
 		fmt.Println(fmt.Sprintf("#> %s", repo.name))
 		if includeRepository(repo.name, target) {
 			backupRepository(
-				target["name"],
+				target.Name,
 				repo.name,
 				repo.cloneURL,
 				backupDirectory,
@@ -65,13 +65,13 @@ func BackupTarget(target map[string]string, backupDirectory string) error {
 
 // getGitHubRepoList finds all the repositories belonging to a given user or
 // organization on GitHub.
-func getGitHubRepoList(target map[string]string, backupDirectory string) ([]repository, error) {
+func getGitHubRepoList(target Target, backupDirectory string) ([]repository, error) {
 	// Create URL to request list of repos.
 	requestURL := fmt.Sprintf(
 		"https://api.github.com/%s/%s/repos?access_token=%s&per_page=200",
-		target["type"],
-		target["entity"],
-		target["token"],
+		target.Type,
+		target.Entity,
+		target.Token,
 	)
 
 	// Retrieve list of repositories.
@@ -99,7 +99,7 @@ func getGitHubRepoList(target map[string]string, backupDirectory string) ([]repo
 		cloneURL = strings.Replace(
 			cloneURL,
 			"https://",
-			fmt.Sprintf("https://%s:%s@", target["entity"], target["token"]),
+			fmt.Sprintf("https://%s:%s@", target.Entity, target.Token),
 			1,
 		)
 		repoList[i] = repository{name: repoName, cloneURL: cloneURL}
@@ -111,14 +111,14 @@ func getGitHubRepoList(target map[string]string, backupDirectory string) ([]repo
 
 // getBitBucketRepoList finds all the repositories belonging to a given user on
 // BitBucket.
-func getBitBucketRepoList(target map[string]string, backupDirectory string) ([]repository, error) {
+func getBitBucketRepoList(target Target, backupDirectory string) ([]repository, error) {
 	// Create URL to request list of repos.
 	// TODO: support pagination.
 	requestURL := fmt.Sprintf(
 		"https://%s:%s@bitbucket.org/api/2.0/repositories/%s?page=1&pagelen=100",
-		target["entity"],
-		target["password"],
-		target["entity"],
+		target.Entity,
+		target.Password,
+		target.Entity,
 	)
 
 	// Retrieve list of repositories.
@@ -173,8 +173,8 @@ func getBitBucketRepoList(target map[string]string, backupDirectory string) ([]r
 		// Determine URL for cloning.
 		cloneURL = strings.Replace(
 			cloneURL,
-			fmt.Sprintf("https://%s@", target["entity"]),
-			fmt.Sprintf("https://%s:%s@", target["entity"], target["password"]),
+			fmt.Sprintf("https://%s@", target.Entity),
+			fmt.Sprintf("https://%s:%s@", target.Entity, target.Password),
 			1,
 		)
 
@@ -222,16 +222,16 @@ func backupRepository(targetName string, repoName string, cloneURL string, backu
 	}
 }
 
-func includeRepository(repoName string, target map[string]string) bool {
-	if target["skip"] != "" {
-		r, err := regexp.Compile(target["skip"])
+func includeRepository(repoName string, target Target) bool {
+	if target.Skip != "" {
+		r, err := regexp.Compile(target.Skip)
 		if err != nil {
 			log.Fatalf(`"skip" does not specify a valid regular expression: %s`, err)
 		}
 		return r.MatchString(repoName) == false
 	}
-	if target["only"] != "" {
-		r, err := regexp.Compile(target["only"])
+	if target.Only != "" {
+		r, err := regexp.Compile(target.Only)
 		if err != nil {
 			log.Fatalf(`"only" does not specify a valid regular expression: %s`, err)
 		}
