@@ -1,8 +1,8 @@
 package gitbackup
 
-import(
-	"testing"
+import (
 	"github.com/davecgh/go-spew/spew"
+	"testing"
 )
 
 type testdata struct {
@@ -19,22 +19,22 @@ var tests = []testdata{
 	},
 	{
 		"reponame",
-		Target{ Skip: "^repo" },
+		Target{Skip: "^repo"},
 		false,
 	},
 	{
 		"reponame",
-		Target{ Skip: "^test" },
+		Target{Skip: "^test"},
 		true,
 	},
 	{
 		"reponame",
-		Target{ Only: "^test"},
+		Target{Only: "^test"},
 		false,
 	},
 	{
 		"reponame",
-		Target{ Only: "^repo"},
+		Target{Only: "^repo"},
 		true,
 	},
 }
