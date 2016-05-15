@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log"
 
-	gitbackup "github.com/guillaumeaubert/go-git-backup/lib"
+	"github.com/guillaumeaubert/go-git-backup/gitbackup"
 )
 
 // Main function.
