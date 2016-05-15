@@ -92,8 +92,8 @@ func getGitHubRepoList(target Target, backupDirectory string) ([]repository, err
 	}
 
 	// Make a list of repositories.
-	repoList := make([]repository, len(data))
-	for i, repo := range data {
+	var repoList []repository
+	for _, repo := range data {
 		repoName, _ := repo["name"].(string)
 		cloneURL, _ := repo["clone_url"].(string)
 		cloneURL = strings.Replace(
@@ -102,7 +102,8 @@ func getGitHubRepoList(target Target, backupDirectory string) ([]repository, err
 			fmt.Sprintf("https://%s:%s@", target.Entity, target.Token),
 			1,
 		)
-		repoList[i] = repository{name: repoName, cloneURL: cloneURL}
+		repo := repository{name: repoName, cloneURL: cloneURL}
+		repoList = append(repoList,repo)
 	}
 
 	// No errors.
