@@ -208,7 +208,7 @@ func backupRepository(targetName string, repoName string, cloneURL string, backu
 		}
 	} else {
 		// The repo already exists, pull updates.
-		cmd := exec.Command("git", "fetch", "-p", cloneURL)
+		cmd := exec.Command("git", "remote", "update", "-p")
 		cmd.Dir = cloneDirectory
 		cmdOut, err := cmd.CombinedOutput()
 		if err != nil {
