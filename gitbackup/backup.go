@@ -207,19 +207,30 @@ func backupRepository(targetName string, repoName string, cloneURL string, backu
 		}
 		fmt.Println("Cloned repository.")
 	} else {
-		// The repo already exists, pull updates.
-		cmd := exec.Command("git", "remote", "update", "-p")
+		// The repo already exists.
+		// Set the origin again in case the credentials have changed.
+		cmd := exec.Command("git", "remote", "set-url", "origin", cloneURL)
 		cmd.Dir = cloneDirectory
 		cmdOut, err := cmd.CombinedOutput()
 		if err != nil {
-			fmt.Println("Error pulling in the repository:", err)
-		} else {
-			// Display pulled information.
-			if len(cmdOut) > 0 {
-				fmt.Printf(string(cmdOut))
-			}
-			fmt.Println("Pulled latest updates in the repository.")
+			fmt.Println("Error setting remote URL:", err)
+			return
 		}
+
+		// Pull updates.
+		cmd = exec.Command("git", "remote", "update", "-p")
+		cmd.Dir = cloneDirectory
+		cmdOut, err = cmd.CombinedOutput()
+		if err != nil {
+			fmt.Println("Error pulling in the repository:", err)
+			return
+		}
+
+		// Display pulled information.
+		if len(cmdOut) > 0 {
+			fmt.Printf(string(cmdOut))
+		}
+		fmt.Println("Pulled latest updates in the repository.")
 	}
 }
 
