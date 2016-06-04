@@ -43,6 +43,7 @@ func BackupTarget(target Target, backupDirectory string) error {
 	}
 
 	// Back up each repository found.
+	backupSuccesses := 0
 	for _, repo := range repoList {
 		fmt.Println(fmt.Sprintf("#> %s", repo.name))
 		if includeRepository(repo.name, target) {
@@ -52,13 +53,21 @@ func BackupTarget(target Target, backupDirectory string) error {
 				repo.cloneURL,
 				backupDirectory,
 			)
+			if backupSuccess {
+				backupSuccesses++
+			}
 			fmt.Println("")
 		} else {
 			fmt.Print("Skipped.\n\n")
 		}
 	}
 
-	fmt.Println("")
+	// Print out summary of the backup actions performed for this target.
+	fmt.Printf(
+		"Backed up %d/%d repositories successfully.\n\n\n",
+		backupSuccesses,
+		len(repoList),
+	)
 
 	return nil
 }
