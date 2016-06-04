@@ -46,7 +46,7 @@ func BackupTarget(target Target, backupDirectory string) error {
 	for _, repo := range repoList {
 		fmt.Println(fmt.Sprintf("#> %s", repo.name))
 		if includeRepository(repo.name, target) {
-			backupRepository(
+			backupSuccess := backupRepository(
 				target.Name,
 				repo.name,
 				repo.cloneURL,
@@ -191,7 +191,7 @@ func getBitBucketRepoList(target Target, backupDirectory string) ([]repository, 
 // contains the content of a normal .git repository but no working directory,
 // which saves space. You can always get a normal repository from the backup by
 // doing a normal git clone of the backup itself.
-func backupRepository(targetName string, repoName string, cloneURL string, backupDirectory string) {
+func backupRepository(targetName string, repoName string, cloneURL string, backupDirectory string) bool {
 	cloneDirectory := filepath.Join(backupDirectory, targetName, repoName)
 
 	if _, err := os.Stat(cloneDirectory); os.IsNotExist(err) {
@@ -200,7 +200,7 @@ func backupRepository(targetName string, repoName string, cloneURL string, backu
 		cmdOut, err := cmd.CombinedOutput()
 		if err != nil {
 			fmt.Println("Error cloning the repository:", err)
-			return
+			return false
 		}
 		if len(cmdOut) > 0 {
 			fmt.Printf(string(cmdOut))
@@ -214,7 +214,7 @@ func backupRepository(targetName string, repoName string, cloneURL string, backu
 		cmdOut, err := cmd.CombinedOutput()
 		if err != nil {
 			fmt.Println("Error setting remote URL:", err)
-			return
+			return false
 		}
 
 		// Pull updates.
@@ -223,7 +223,7 @@ func backupRepository(targetName string, repoName string, cloneURL string, backu
 		cmdOut, err = cmd.CombinedOutput()
 		if err != nil {
 			fmt.Println("Error pulling in the repository:", err)
-			return
+			return false
 		}
 
 		// Display pulled information.
@@ -232,6 +232,8 @@ func backupRepository(targetName string, repoName string, cloneURL string, backu
 		}
 		fmt.Println("Pulled latest updates in the repository.")
 	}
+
+	return true
 }
 
 // includeRepository takes a repository name and the information about the
