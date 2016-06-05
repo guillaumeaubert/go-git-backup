@@ -112,7 +112,7 @@ func getGitHubRepoList(target Target, backupDirectory string) ([]repository, err
 			1,
 		)
 		repo := repository{name: repoName, cloneURL: cloneURL}
-		repoList = append(repoList,repo)
+		repoList = append(repoList, repo)
 	}
 
 	// No errors.
