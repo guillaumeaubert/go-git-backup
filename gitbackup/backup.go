@@ -43,7 +43,11 @@ func BackupTarget(target Target, backupDirectory string) error {
 	}
 
 	// Back up each repository found.
-	backupSuccesses := 0
+	stats := map[string]int{
+		"success": 0,
+		"skipped": 0,
+		"failure": 0,
+	}
 	for _, repo := range repoList {
 		fmt.Println(fmt.Sprintf("#> %s", repo.name))
 		if includeRepository(repo.name, target) {
@@ -54,18 +58,23 @@ func BackupTarget(target Target, backupDirectory string) error {
 				backupDirectory,
 			)
 			if backupSuccess {
-				backupSuccesses++
+				stats["success"]++
+			} else {
+				stats["failure"]++
 			}
 			fmt.Println("")
 		} else {
 			fmt.Print("Skipped.\n\n")
+			stats["skipped"]++
 		}
 	}
 
 	// Print out summary of the backup actions performed for this target.
 	fmt.Printf(
-		"Backed up %d/%d repositories successfully.\n\n\n",
-		backupSuccesses,
+		"%d success(es) + %d skipped + %d failure(s) = %d repositories for this target.\n\n\n",
+		stats["success"],
+		stats["skipped"],
+		stats["failure"],
 		len(repoList),
 	)
 
